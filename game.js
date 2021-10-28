@@ -41,7 +41,32 @@ function Bear() {
     
 }
 
+function removeBee(){
+    if(typeof bees !== 'undefined'){
+        while(bees.length!== 0){
+            var removeMyBee=bees.pop();
+            var removeMyBeeId=document.getElementById(removeMyBee.id);
+            removeMyBeeId.remove();
+            console.log("popped");
+        }
+    }
+}
+
+function removeGameOver(){
+    var checkGameOver=document.getElementById("gameOver");
+    if(checkGameOver.style.display=="block"){
+        checkGameOver.style.display="none";
+    }
+}
+
 function start() {
+    removeGameOver();
+    removeBee();
+    clearTimeout(updateTimer);
+    hits.innerHTML=0;
+    duration.innerHTML=0;
+
+    hasStarted = false;
     //create the bear
     bear = new Bear();
     // Adding a event listener if someone presses a key
@@ -56,8 +81,16 @@ function start() {
     makeBees();
 }
 
+function isItStart(){
+    if(!hasStarted){
+        hasStarted=true;
+        lastStingTime = new Date();
+        updateBees();
+    }
+}
 //creating event handler for keyboard events to move the bear
 function moveBear(e){
+
     //codes for the 4 keys declared using const
     const KEYUP = 38;
     const KEYDOWN = 40;
@@ -65,24 +98,34 @@ function moveBear(e){
     const KEYRIGHT = 39;
 
     if(e.keyCode == KEYRIGHT){
+        isItStart();
         bear.move(1,0)
     } //if right key is pressed move bear right
 
     if(e.keyCode == KEYLEFT) {
+        isItStart();
         bear.move(-1,0)
     } // if left key is pressed move bear left
 
     if(e.keyCode == KEYUP) {
+        isItStart();
         bear.move(0,-1)
     } //if up key is pressed move bear up
 
     if(e.keyCode == KEYDOWN) {
+        isItStart();
         bear.move(0,1)
     } //if down key is pressed move bear down
 }
 
 function setTheSpeed(){
-    bear.setSpeed(document.getElementById("speedBear").value)
+    let newSpeed= document.getElementById("speedBear").value;
+    if(Number(newSpeed)){
+        bear.setSpeed(newSpeed);
+    }else{
+        alert("Please enter a number or a number greater than 0!")
+    }
+    
 }
 
 class Bee {
@@ -195,14 +238,70 @@ function moveBees(){
         let dx = getRandomInt(2 * speed) - speed;
         let dy = getRandomInt(2 * speed) - speed;
         bees[i].move(dx,dy);
+        isHit(bees[i], bear); //we add this to count stings
     }
 }
 
 function updateBees(){ // update loop for game
-    //move the bees randomly
-    moveBees();
-    //use a update period
-    let period = 10;//modify this to control refresh period
-    //update the timer for the next move
-    updateTimer = setTimeout('updateBees()',period);
+
+    score=hits.innerHTML
+    if(Number(score)==1000){
+        alert("Game Over!");
+        document.getElementById("gameOver").style.display = "block";
+        clearTimeout(updateTimer);
+    }
+    else{
+        //use a update period
+        let period = document.getElementById("periodTimer").value;//modify this to control refresh period
+        //move the bees randomly
+        moveBees();
+        //update the timer for the next move
+        updateTimer = setTimeout('updateBees()',period);
+    }
+        
+    
+}
+
+function isHit(defender, offender) {
+    if(overlap(defender, offender)) { //check if the two images overlap
+        let score = hits.innerHTML;
+        score = Number(score) + 1; //increment the score
+        hits.innerHTML = score; //display the new score
+        //calculate longest duration
+        let newStingTime = new Date();
+        let thisDuration = newStingTime - lastStingTime;
+        lastStingTime = newStingTime;
+        let longestDuration = Number(duration.innerHTML);
+        if (longestDuration === 0 || isNaN(longestDuration)) {
+        longestDuration = thisDuration;
+        } else {
+        if (longestDuration < thisDuration) longestDuration = thisDuration;
+        }
+        document.getElementById("duration").innerHTML = longestDuration;
+    }
+}
+
+function overlap(element1, element2) {
+    //consider the 2 rectangles wrapping the two elements
+    //rectangle of the first element
+    left1 = element1.htmlElement.offsetLeft;
+    top1 = element1.htmlElement.offsetTop;
+    right1 = element1.htmlElement.offsetLeft + element1.htmlElement.offsetWidth;
+    bottom1 = element1.htmlElement.offsetTop + element1.htmlElement.offsetHeight;
+    //rectangle of the second element
+    left2 = element2.htmlElement.offsetLeft; //e2x
+    top2 = element2.htmlElement.offsetTop; //e2y
+    right2 = element2.htmlElement.offsetLeft + element2.htmlElement.offsetWidth;
+    bottom2 = element2.htmlElement.offsetTop + element2.htmlElement.offsetHeight;
+    
+    //calculate the intersection of the two rectangles
+    x_intersect = Math.max(0, Math.min(right1,right2) - Math.max(left1,left2));
+    y_intersect = Math.max(0,Math.min(bottom1, bottom2) - Math.max(top1,top2));
+    intersectArea = x_intersect * y_intersect;
+    //if intersection is nil no hit
+    if(intersectArea == 0 || isNaN(intersectArea)){
+        return false;
+    }
+
+    return true;
 }
