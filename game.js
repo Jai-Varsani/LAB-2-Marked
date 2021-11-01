@@ -41,7 +41,7 @@ function Bear() {
     
 }
 
-function removeBee(){
+function removeBee(){ // removes all the bees
     if(typeof bees !== 'undefined'){
         while(bees.length!== 0){
             var removeMyBee=bees.pop();
@@ -52,7 +52,7 @@ function removeBee(){
     }
 }
 
-function removeGameOver(){
+function removeGameOver(){ //removes game over sign
     var checkGameOver=document.getElementById("gameOver");
     if(checkGameOver.style.display=="block"){
         checkGameOver.style.display="none";
@@ -77,7 +77,6 @@ function start() {
     bees = new Array();
     //create bees
     // creates the number of bees in the input box again and adds them
-    //document.getElementById("nbBees").addEventListener("change",makeBees,false);
     makeBees();
 }
 
@@ -213,8 +212,6 @@ function makeBees(){
         return;
     }
     
-    //create bees also add if statement here to see if bees has stuff inside so function in start can be used
-    //#####################################
     let i = 1;
     while(i <= nbBees) {
         var num = i;
@@ -225,10 +222,15 @@ function makeBees(){
     }
 }
 
-//make some code to adding just one bee then you can add as many bees as you need to get to the number of bees in the input
-//#################################################################
-
-
+function addBee(){
+    let numBees = document.getElementById("nbBees").value;
+    var newNumBees= Number(numBees) + 1;
+    document.getElementById("nbBees").value= newNumBees;
+    var newBee = new Bee(1);
+    newBee.display();
+    bees.push(newBee);
+    updateBees();
+}
 
 function moveBees(){
     //get speed input field value
@@ -245,7 +247,7 @@ function moveBees(){
 function updateBees(){ // update loop for game
 
     score=hits.innerHTML
-    if(Number(score)==1000){
+    if(Number(score)>=1000){
         alert("Game Over!");
         document.getElementById("gameOver").style.display = "block";
         clearTimeout(updateTimer);
